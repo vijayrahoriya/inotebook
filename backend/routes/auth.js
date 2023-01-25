@@ -14,15 +14,16 @@ router.post('/createuser', [
     body('email', 'please enter a valid email').isEmail(),
     body('password').isLength({ min: 5 })
 ], async (req, res) => {
+    let success = false;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({success, errors: errors.array() });
     }
     try {
 
         let user = await User.findOne({ email: req.body.email }); //checking email exist or not
         if (user) {
-            return res.status(404).json({ error: "Sorry this email is exist" })
+            return res.status(404).json({success, error: "Sorry this email is exist" })
         }
         const salt =await bcrypt.genSalt(10);//creating salt
         setPass = await bcrypt.hash(req.body.password,salt);//gentrating hash
@@ -37,7 +38,8 @@ router.post('/createuser', [
             }
         }
         const authToken = jwt.sign(data,JWT_SECRET);
-        res.json({authToken})
+        success = true;
+        res.json({success,authToken})
 
         // res.json({ "success": "successful" })
         
@@ -51,24 +53,25 @@ router.post('/createuser', [
     }
 })
 
-//authenticat a user
+//authenticat a userk
 router.post('/login', [
     body('email', 'please enter a valid email').isEmail(),
     body('password','password can not be blanked').exists(),
 ], async (req, res) => {
+    let success = false;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({success, errors: errors.array() });
     }
     try{
         let {email,password} = req.body
         let user = await User.findOne({email});
         if(!user){
-            return res.status(400).json({error:"Please try to login with correct information"})
+            return res.status(400).json({success,error:"Please try to login with correct information"})
         }
         const passwordCompare = await bcrypt.compare(password,user.password)
         if(!passwordCompare){
-            return res.status(400).json({error:'please try to login with corrent information'})
+            return res.status(400).json({success,error:'please try to login with correct information'})
         }
         const data = {
             user:{
@@ -77,7 +80,8 @@ router.post('/login', [
         }
 
         const authToken = await jwt.sign(data,JWT_SECRET);
-        res.json(authToken)
+        success = true;
+        res.json({success, authToken})
     }catch (err) {
         console.error(err.message)
         res.status(500).send('Some Internal error')
@@ -89,6 +93,16 @@ router.post('/getuser',fetchUser,async(req,res)=>{
         let userId = req.user.id;
         const user = await User.findById(userId)//for removing password from the get data
         // console.log(userId)
+        res.send(user)
+    }catch (err) {
+        // console.error(err.message)
+        res.status(500).send('Some Internal error')
+    }
+})
+
+router.get('/getdata',async(req,res)=>{
+    try{
+        const user = await User.find();
         res.send(user)
     }catch (err) {
         // console.error(err.message)

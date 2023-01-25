@@ -6,6 +6,9 @@ export default function Navbar() {
   // useEffect(()=>{
   //   console.log(location.pathname)
   // },[location])
+  const logout = () =>{
+    localStorage.removeItem('token');
+  }
   
   return (<>
     <nav className="navbar navbar-expand-lg bg-dark navbar-dark">
@@ -24,10 +27,10 @@ export default function Navbar() {
         </li>
         
       </ul>
-      <form className="d-flex" role="search">
-        <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
-        <button className="btn btn-outline-success" type="submit">Search</button>
-      </form>
+      {localStorage.getItem('token') ? <Link className="btn btn-primary mx-2" onClick={logout} to='/login' role="button">Logout</Link> : <form className="d-flex" role="search">
+      <Link className="btn btn-primary mx-2" to="/login" role="button">Login</Link>
+      <Link className="btn btn-primary" to="/signup" role="button">SignUp</Link>
+      </form>}
     </div>
   </div>
 </nav>
